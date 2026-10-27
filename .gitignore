@@ -1,0 +1,17 @@
+
+# Dependencies
+node_modules/
+
+# Environment dan kredensial
+.env
+.env.*
+!.env.example
+
+# Log
+*.log
+npm-debug.log*
+
+# File sistem dan editor
+.DS_Store
+Thumbs.db
+.vscode/

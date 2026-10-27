@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NexEnergy | Hybrid Power Monitor</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+            /* Export Buttons */
+.export-bar {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-export {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Inter', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.btn-export-excel {
+    background: linear-gradient(135deg, #1f7b4d, #0f5c3a);
+}
+
+.btn-export-all {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at 20% 30%, #0a0a2a, #03030f);
+            min-height: 100vh;
+            color: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow::before {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 60%;
+            top: -30%;
+            right: -20%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        .bg-glow::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            bottom: -20%;
+            left: -20%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent);
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Premium */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px 30px;
+            background: rgba(10, 10, 30, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-area h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #00d4ff, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-area p {
+            font-size: 0.75rem;
+            color: #8b8ca8;
+            letter-spacing: 1px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 18px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Stats Row */
+        .stats-ribbon {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-pill {
+            background: rgba(15, 15, 35, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .stat-pill:hover {
+            transform: translateY(-4px);
+            background: rgba(25, 25, 50, 0.8);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .stat-pill .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #8b8ca8;
+            margin-bottom: 8px;
+        }
+
+        .stat-pill .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #a0a0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Main Grid Cards (Glassmorphism) */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(12, 12, 28, 0.5);
+            backdrop-filter: blur(16px);
+            border-radius: 32px;
+            padding: 24px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 35px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #8b8ca8;
+            margin-bottom: 12px;
+        }
+
+        .card-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .card-unit {
+            font-size: 0.8rem;
+            color: #6b6c8a;
+            font-weight: 400;
+        }
+
+        /* Button Group Premium */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            padding: 14px 36px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-auto {
+            background: linear-gradient(95deg, #3b82f6, #8b5cf6);
+            color: white;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-pln {
+            background: linear-gradient(95deg, #059669, #10b981);
+            color: white;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-plts {
+            background: linear-gradient(95deg, #d97706, #f59e0b);
+            color: white;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+            letter-spacing: 0.8px;
+        }
+
+        .btn-off {
+            background: linear-gradient(95deg, #dc2626, #991b1b);
+            color: white;
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Chart Panels */
+        .chart-panel {
+            background: rgba(10, 10, 25, 0.5);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 28px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .chart-header h3 {
+            font-weight: 500;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-select {
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 18px;
+            border-radius: 40px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .filter-select:hover {
+            border-color: #00d4ff;
+        }
+
+        canvas {
+            max-height: 320px;
+            width: 100%;
+        }
+
+        /* Source Active Indicator */
+        .sumber-pln {
+            color: #10b981;
+            text-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+        }
+        .sumber-plts {
+            color: #f59e0b;
+            text-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 25px;
+            font-size: 0.7rem;
+            color: #4a4b6e;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1100px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-ribbon { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 680px) {
+            .grid { grid-template-columns: 1fr; }
+            .stats-ribbon { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 15px; text-align: center; }
+            .btn-group { flex-direction: column; align-items: center; }
+            .btn { width: 80%; }
+        }
+        /* Tombol Monitoring Daya */
+.btn-monitoring {
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(31, 123, 77, 0.3);
+}
+.btn-monitoring:hover {
+    transform: scale(1.05);
+    filter: brightness(1.05);
+}
+
+/* Filter Select */
+.filter-select {
+    background: rgba(20, 20, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 18px;
+    border-radius: 40px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.filter-select:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+    </style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="container">
+
+    <!-- Header Premium -->
+    <div class="header">
+    <div class="logo-area">
+        <h1><i class="fas fa-bolt" style="color: #00d4ff; margin-right: 8px;"></i> NEX<span style="color: #00d4ff;">ENERGY</span></h1>
+        <p>HYBRID PLN-PLTS | SMART ATS | REALTIME IOT</p>
+    </div>
+    
+    <!-- TOMBOL MONITORING DAYA TERPAKAI -->
+    <button class="btn-monitoring" onclick="toggleMonitoringDetail()" style="background: linear-gradient(135deg, #1f7b4d, #0f5c3a); color: white; padding: 8px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: bold;">
+        📊 MONITORING DAYA TERPAKAI
+    </button>
+    
+    <div class="status-indicator">
+        <div class="live-dot"></div>
+        <span id="liveStatus" style="font-size: 0.8rem;">LIVE STREAM ACTIVE</span>
+        <span id="lastUpdateTime" style="font-size: 0.7rem; color: #6b6c8a;"></span>
+    </div>
+</div>
+
+    <!-- Stats Top -->
+    <div class="stats-ribbon">
+        <div class="stat-pill"><div class="label">⚡ EFISIENSI PLTS</div><div class="value" id="persenPLTS">0%</div></div>
+        <div class="stat-pill"><div class="label">📊 DAYA RATA (24H)</div><div class="value" id="avgDaya">0 W</div></div>
+        <div class="stat-pill"><div class="label">🏭 TOTAL PLN</div><div class="value" id="totalPLN">0 kWh</div></div>
+        <div class="stat-pill"><div class="label">☀️ TOTAL PLTS</div><div class="value" id="totalPLTS">0 kWh</div></div>
+    </div>
+
+    <!-- 8 Sensor Cards (Luxury) -->
+    <div class="grid">
+        <div class="card"><div class="card-icon">🔋</div><div class="card-title">BATERAI</div><div class="card-value" id="bat">0<span class="card-unit"> V</span></div></div>
+        <div class="card"><div class="card-icon">⚡</div><div class="card-title">TEGANGAN AC</div><div class="card-value" id="ac">0<span class="card-unit"> V</span></div></div>
+        <div class="card"><div class="card-icon">📊</div><div class="card-title">DAYA BEBAN</div><div class="card-value" id="watt">0<span class="card-unit"> W</span></div></div>
+        <div class="card"><div class="card-icon">🔌</div><div class="card-title">SUMBER AKTIF</div><div class="card-value" id="sumber">--</div></div>
+        <div class="card"><div class="card-icon">🌡️</div><div class="card-title">SUHU RUANG</div><div class="card-value" id="suhu">0<span class="card-unit"> °C</span></div></div>
+        <div class="card"><div class="card-icon">📈</div><div class="card-title">ENERGI TOTAL</div><div class="card-value" id="energi">0<span class="card-unit"> kWh</span></div></div>
+        <div class="card"><div class="card-icon">📐</div><div class="card-title">POWER FACTOR</div><div class="card-value" id="pf">0</div></div>
+        <div class="card"><div class="card-icon">🔊</div><div class="card-title">FREKUENSI</div><div class="card-value" id="freq">0<span class="card-unit"> Hz</span></div></div>
+    </div>
+
+    <!-- Control Buttons Premium -->
+    <div class="btn-group">
+    <button class="btn btn-auto" onclick="sendCommand('auto')"><i class="fas fa-robot"></i> MODE OTOMATIS</button>
+    <button class="btn btn-pln" onclick="sendCommand('pln')"><i class="fas fa-industry"></i> PAKAI PLN</button>
+    <button class="btn btn-plts" onclick="sendCommand('plts')"><i class="fas fa-solar-panel"></i> PAKAI PLTS</button>
+    <button class="btn btn-off" onclick="sendCommand('off')"><i class="fas fa-power-off"></i> MATIKAN SEMUA</button>
+</div>
+    <!-- Export Buttons -->
+<div class="export-bar">
+    <button class="btn-export btn-export-excel" onclick="exportToExcel('latest')">
+        <i class="fas fa-file-excel"></i> Export Data Terbaru
+    </button>
+    <button class="btn-export btn-export-excel" onclick="exportHistoryToExcel()">
+        <i class="fas fa-chart-line"></i> Export Data Grafik
+    </button>
+    <button class="btn-export btn-export-all" onclick="exportAllDataToExcel()">
+        <i class="fas fa-database"></i> Export Semua Data
+    </button>
+</div>
+    <!-- Chart Panel Daya -->
+    <div class="chart-panel">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-line" style="color: #f59e0b;"></i> POWER TREND (DAYA)</h3>
+            <select id="dateRange" class="filter-select" onchange="loadHistory()">
+                <option value="7">📅 7 Hari Terakhir</option>
+                <option value="14">📅 14 Hari Terakhir</option>
+                <option value="30">📅 30 Hari Terakhir</option>
+                <option value="90">📅 90 Hari Terakhir</option>
+            </select>
+        </div>
+        <canvas id="powerChart"></canvas>
+    </div>
+
+    <!-- Chart Panel Baterai -->
+    <div class="chart-panel">
+        <div class="chart-header">
+            <h3><i class="fas fa-car-battery" style="color: #10b981;"></i> BATTERY VOLTAGE TREND</h3>
+            <select id="dateRangeBat" class="filter-select" onchange="loadBatteryHistory()">
+                <option value="7">📅 7 Hari Terakhir</option>
+                <option value="14">📅 14 Hari Terakhir</option>
+                <option value="30">📅 30 Hari Terakhir</option>
+                <option value="90">📅 90 Hari Terakhir</option>
+            </select>
+        </div>
+        <canvas id="batteryChart"></canvas>
+    </div>
+
+    <div class="footer">
+        <i class="fas fa-microchip"></i> NEXENERGY CORE v2.0 | HYBRID SMART GRID | REAL-TIME SYNC
+    </div>
+</div>
+<!-- ===================================================== -->
+<!-- SECTION HISTORY PLN vs PLTS                          -->
+<!-- ===================================================== -->
+<div class="chart-panel">
+    <div class="chart-header">
+        <h3><i class="fas fa-chart-bar" style="color: #3b82f6;"></i> STATISTIK PLN vs PLTS</h3>
+        <div style="display: flex; gap: 10px;">
+            <button class="filter-select" onclick="loadStatistikPeriode('hari')" style="background: #3b82f6;">Hari</button>
+            <button class="filter-select" onclick="loadStatistikPeriode('bulan')" style="background: #f59e0b;">Bulan</button>
+            <button class="filter-select" onclick="loadStatistikPeriode('tahun')" style="background: #8b5cf6;">Tahun</button>
+        </div>
+    </div>
+    
+    <div id="filterPeriode" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <span>📅 Rentang Tanggal:</span>
+        <input type="date" id="startDate" style="background: rgba(20,20,40,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white;">
+        <span>s.d</span>
+        <input type="date" id="endDate" style="background: rgba(20,20,40,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; color: white;">
+        <button class="filter-select" onclick="loadStatistikPeriode('hari')" style="background: #3b82f6; padding: 8px 20px;">Tampilkan</button>
+    </div>
+    
+    <div id="statsRingkasan" class="stats-grid" style="margin-bottom: 20px;">
+        <div class="stat-card">Total PLN<br><span id="statTotalPLN" class="stat-value">-- kWh</span></div>
+        <div class="stat-card">Total PLTS<br><span id="statTotalPLTS" class="stat-value">-- kWh</span></div>
+        <div class="stat-card">Total Energi<br><span id="statTotalEnergi" class="stat-value">-- kWh</span></div>
+        <div class="stat-card">Efisiensi PLTS<br><span id="statEfisiensi" class="stat-value">-- %</span></div>
+    </div>
+    
+    <canvas id="comparisonChart" style="max-height: 400px;"></canvas>
+    
+    <div style="margin-top: 20px; overflow-x: auto;">
+        <table id="detailTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: rgba(0,0,0,0.5);">
+                    <th style="padding: 12px; text-align: left;">Tanggal/Bulan</th>
+                    <th style="padding: 12px; text-align: left;">Energi PLN (kWh)</th>
+                    <th style="padding: 12px; text-align: left;">Energi PLTS (kWh)</th>
+                    <th style="padding: 12px; text-align: left;">Total (kWh)</th>
+                    <th style="padding: 12px; text-align: left;">Kontribusi PLTS</th>
+                </tr>
+            </thead>
+            <tbody id="detailTableBody">
+                <tr><td colspan="5" style="text-align: center;">Pilih periode untuk melihat data</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    const API_URL = window.location.origin + '/api';
+    let powerChart, batteryChart;
+
+    async function loadRealtime() {
+        try {
+            const res = await fetch(`${API_URL}/latest`);
+            const data = await res.json();
+            if (data && data.waktu) {
+                document.getElementById('bat').innerHTML = (data.tegangan_baterai || 0).toFixed(2) + '<span class="card-unit"> V</span>';
+                document.getElementById('ac').innerHTML = (data.tegangan_ac || 0).toFixed(1) + '<span class="card-unit"> V</span>';
+                document.getElementById('watt').innerHTML = (data.daya_beban || 0).toFixed(1) + '<span class="card-unit"> W</span>';
+                document.getElementById('suhu').innerHTML = (data.suhu || 0).toFixed(1) + '<span class="card-unit"> °C</span>';
+                document.getElementById('energi').innerHTML = (data.energi_kwh || 0).toFixed(3) + '<span class="card-unit"> kWh</span>';
+                document.getElementById('pf').innerHTML = (data.power_factor || 0).toFixed(2);
+                document.getElementById('freq').innerHTML = (data.frekuensi || 0).toFixed(1) + '<span class="card-unit"> Hz</span>';
+                const sumber = data.sumber_aktif || '--';
+                // Update data untuk modal monitoring
+                latestDayaPLN = data.daya_pln || 0;
+                latestDayaPLTS = data.daya_plts || 0;
+                latestTotalDaya = data.watt || 0;
+                latestSumberAktif = sumber;
+                updateModalData();
+                const sumberEl = document.getElementById('sumber');
+                sumberEl.innerHTML = sumber;
+                sumberEl.className = 'card-value ' + (sumber === 'PLN' ? 'sumber-pln' : 'sumber-plts');
+                document.getElementById('lastUpdateTime').innerHTML = new Date().toLocaleTimeString('id-ID');
+            }
+            document.getElementById('liveStatus').innerHTML = '🟢 LIVE SYNC';
+        } catch (error) {
+            document.getElementById('liveStatus').innerHTML = '🔴 OFFLINE';
+        }
+    }
+
+    async function loadStats() {
+        try {
+            const res = await fetch(`${API_URL}/stats`);
+            const data = await res.json();
+            document.getElementById('totalPLN').innerHTML = (data.total_pln || 0).toFixed(2) + ' kWh';
+            document.getElementById('totalPLTS').innerHTML = (data.total_plts || 0).toFixed(2) + ' kWh';
+            document.getElementById('persenPLTS').innerHTML = (data.persen_plts || 0) + ' %';
+            document.getElementById('avgDaya').innerHTML = (data.avg_daya || 0).toFixed(1) + ' W';
+        } catch(e) { console.warn(e); }
+    }
+
+    async function loadHistory() {
+        const days = document.getElementById('dateRange').value;
+        try {
+            const res = await fetch(`${API_URL}/history?days=${days}&type=daya`);
+            const json = await res.json();
+            const data = json.data || json;
+            const labels = data.map(d => d.tanggal);
+            const values = data.map(d => d.rata_daya || 0);
+            if (powerChart) powerChart.destroy();
+            const ctx = document.getElementById('powerChart').getContext('2d');
+            powerChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Rata-rata Daya (${days} hari)`,
+                        data: values,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.1)',
+                        borderWidth: 2.5,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f59e0b'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#ddd' } } } }
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadBatteryHistory() {
+        const days = document.getElementById('dateRangeBat').value;
+        try {
+            const res = await fetch(`${API_URL}/history?days=${days}&type=baterai`);
+            const json = await res.json();
+            const data = json.data || json;
+            const labels = data.map(d => d.tanggal);
+            const values = data.map(d => d.rata_baterai || 0);
+            if (batteryChart) batteryChart.destroy();
+            const ctx = document.getElementById('batteryChart').getContext('2d');
+            batteryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Rata-rata Tegangan Baterai (${days} hari)`,
+                        data: values,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.1)',
+                        borderWidth: 2.5,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#ddd' } } } }
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function sendCommand(command) {
+        try {
+            const res = await fetch(`${API_URL}/control`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command })
+            });
+            const data = await res.json();
+            alert(`✅ ${data.message}`);
+        } catch(e) { alert('❌ Gagal mengirim perintah'); }
+    }
+    // ========== FUNGSI EXPORT KE EXCEL ==========
+
+// Format tanggal untuk nama file
+function getFormattedDate() {
+    const now = new Date();
+    return `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}-${now.getMinutes().toString().padStart(2,'0')}`;
+}
+
+// Export data terbaru (real-time)
+async function exportToExcel() {
+    try {
+        const response = await fetch(`${API_URL}/latest`);
+        const data = await response.json();
+        
+        if (!data || !data.waktu) {
+            alert('Belum ada data untuk diexport');
+            return;
+        }
+        
+        // Format data untuk Excel
+        const worksheetData = [
+            ['LAPORAN DATA SENSOR TERBARU'],
+            ['Waktu Export', new Date().toLocaleString('id-ID')],
+            [''],
+            ['Parameter', 'Nilai', 'Satuan'],
+            ['Tegangan AC', data.tegangan_ac || 0, 'Volt'],
+            ['Daya Beban', data.daya_beban || 0, 'Watt'],
+            ['Tegangan Baterai', data.tegangan_baterai || 0, 'Volt'],
+            ['Sumber Aktif', data.sumber_aktif || '--', ''],
+            ['Suhu Ruangan', data.suhu || 0, '°C'],
+            ['Energi Total', data.energi_kwh || 0, 'kWh'],
+            ['Power Factor', data.power_factor || 0, ''],
+            ['Frekuensi', data.frekuensi || 0, 'Hz'],
+            [''],
+            ['Waktu Data', data.waktu_formatted || data.waktu, '']
+        ];
+        
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Data Terbaru');
+        
+        // Atur lebar kolom
+        ws['!cols'] = [{wch:20}, {wch:15}, {wch:10}];
+        
+        XLSX.writeFile(wb, `laporan_data_terbaru_${getFormattedDate()}.xlsx`);
+        alert('✅ Export data terbaru berhasil!');
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('❌ Gagal export data');
+    }
+}
+
+// Export data history (grafik)
+async function exportHistoryToExcel() {
+    const days = document.getElementById('dateRange').value;
+    
+    try {
+        const response = await fetch(`${API_URL}/history?days=${days}&type=daya`);
+        const json = await response.json();
+        const data = json.data || json;
+        
+        if (!data || data.length === 0) {
+            alert('Belum ada data history untuk diexport');
+            return;
+        }
+        
+        // Format data untuk Excel
+        const worksheetData = [
+            [`LAPORAN DATA HISTORY ${days} HARI TERAKHIR`],
+            [`Waktu Export: ${new Date().toLocaleString('id-ID')}`],
+            [''],
+            ['Tanggal', 'Rata-rata Daya (Watt)', 'Min Daya (Watt)', 'Max Daya (Watt)', 'Total Energi (kWh)', 'Jumlah Data']
+        ];
+        
+        // Ambil detail data
+        const detailResponse = await fetch(`${API_URL}/history?days=${days}`);
+        const detailJson = await detailResponse.json();
+        const detailData = detailJson.data || detailJson;
+        
+        detailData.forEach(row => {
+            worksheetData.push([
+                row.tanggal,
+                (row.rata_daya || 0).toFixed(1),
+                (row.min_daya || 0).toFixed(1),
+                (row.max_daya || 0).toFixed(1),
+                (row.total_energi || 0).toFixed(3),
+                row.jumlah_data || 0
+            ]);
+        });
+        
+        // Tambahan statistik
+        const statsResponse = await fetch(`${API_URL}/stats`);
+        const stats = await statsResponse.json();
+        
+        worksheetData.push([''], ['STATISTIK KESELURUHAN']);
+        worksheetData.push(['Total Energi PLN', (stats.total_pln || 0).toFixed(2), 'kWh']);
+        worksheetData.push(['Total Energi PLTS', (stats.total_plts || 0).toFixed(2), 'kWh']);
+        worksheetData.push(['Efisiensi PLTS', (stats.persen_plts || 0) + '%', '']);
+        worksheetData.push(['Rata-rata Daya 24 Jam', (stats.avg_daya || 0).toFixed(1), 'Watt']);
+        
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `History_${days}_Hari`);
+        
+        ws['!cols'] = [{wch:12}, {wch:18}, {wch:18}, {wch:18}, {wch:15}, {wch:12}];
+        
+        XLSX.writeFile(wb, `laporan_history_${days}hari_${getFormattedDate()}.xlsx`);
+        alert(`✅ Export data history ${days} hari berhasil!`);
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('❌ Gagal export data history');
+    }
+}
+
+// Export semua data dari database
+async function exportAllDataToExcel() {
+    try {
+        // Ambil semua data (30 hari terakhir untuk performa)
+        const response = await fetch(`${API_URL}/history?days=30`);
+        const json = await response.json();
+        const data = json.data || json;
+        
+        if (!data || data.length === 0) {
+            alert('Belum ada data untuk diexport');
+            return;
+        }
+        
+        // Format data untuk Excel
+        const worksheetData = [
+            ['LAPORAN LENGKAP DATA MONITORING'],
+            [`Periode: 30 Hari Terakhir`],
+            [`Waktu Export: ${new Date().toLocaleString('id-ID')}`],
+            [''],
+            ['Tanggal', 'Rata-rata Daya (W)', 'Min Daya (W)', 'Max Daya (W)', 'Rata Baterai (V)', 'Total Energi (kWh)', 'Jumlah Sampel']
+        ];
+        
+        data.forEach(row => {
+            worksheetData.push([
+                row.tanggal,
+                (row.rata_daya || 0).toFixed(1),
+                (row.min_daya || 0).toFixed(1),
+                (row.max_daya || 0).toFixed(1),
+                (row.rata_baterai || 0).toFixed(2),
+                (row.total_energi || 0).toFixed(3),
+                row.jumlah_data || 0
+            ]);
+        });
+        
+        // Hitung total
+        let totalDaya = 0;
+        let totalEnergi = 0;
+        data.forEach(row => {
+            totalDaya += (row.rata_daya || 0);
+            totalEnergi += (row.total_energi || 0);
+        });
+        const rataDaya = totalDaya / data.length;
+        
+        worksheetData.push(['']);
+        worksheetData.push(['RINGKASAN']);
+        worksheetData.push(['Total Hari', data.length]);
+        worksheetData.push(['Rata-rata Daya Keseluruhan', rataDaya.toFixed(1), 'Watt']);
+        worksheetData.push(['Total Energi Keseluruhan', totalEnergi.toFixed(2), 'kWh']);
+        
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Laporan_Lengkap');
+        
+        ws['!cols'] = [{wch:12}, {wch:15}, {wch:15}, {wch:15}, {wch:15}, {wch:15}, {wch:12}];
+        
+        XLSX.writeFile(wb, `laporan_lengkap_${getFormattedDate()}.xlsx`);
+        alert('✅ Export semua data berhasil!');
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('❌ Gagal export semua data');
+    }
+}
+    setInterval(() => { loadRealtime(); loadStats(); }, 3000);
+    loadRealtime(); loadStats(); loadHistory(); loadBatteryHistory();
+    // =====================================================
+// FUNGSI MONITORING DAYA TERPAKAI (Modal)
+// =====================================================
+let latestDayaPLN = 0;
+let latestDayaPLTS = 0;
+let latestTotalDaya = 0;
+let latestSumberAktif = "--";
+
+function updateModalData() {
+    document.getElementById('modalDayaPLN').innerHTML = latestDayaPLN.toFixed(1) + ' W';
+    document.getElementById('modalDayaPLTS').innerHTML = latestDayaPLTS.toFixed(1) + ' W';
+    document.getElementById('modalTotalDaya').innerHTML = latestTotalDaya.toFixed(1) + ' W';
+    document.getElementById('modalSumberAktif').innerHTML = latestSumberAktif;
+    
+    const total = latestDayaPLN + latestDayaPLTS;
+    if (total > 0) {
+        const persenPLN = (latestDayaPLN / total * 100).toFixed(1);
+        const persenPLTS = (latestDayaPLTS / total * 100).toFixed(1);
+        document.getElementById('persenPLNModal').innerHTML = persenPLN + '%';
+        document.getElementById('persenPLTSModal').innerHTML = persenPLTS + '%';
+        document.getElementById('progressPLN').style.width = persenPLN + '%';
+        document.getElementById('progressPLTS').style.width = persenPLTS + '%';
+    } else {
+        document.getElementById('persenPLNModal').innerHTML = '0%';
+        document.getElementById('persenPLTSModal').innerHTML = '0%';
+        document.getElementById('progressPLN').style.width = '0%';
+        document.getElementById('progressPLTS').style.width = '0%';
+    }
+    
+    const sumberElement = document.getElementById('modalSumberAktif');
+    if (latestSumberAktif === 'PLN') sumberElement.style.color = '#3b82f6';
+    else if (latestSumberAktif === 'PLTS') sumberElement.style.color = '#10b981';
+    else sumberElement.style.color = '#a0a0c0';
+}
+
+function toggleMonitoringDetail() {
+    const panel = document.getElementById('monitoringPanel');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        updateModalData();
+        panel.style.display = 'flex';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// =====================================================
+// FUNGSI STATISTIK PLN vs PLTS
+// =====================================================
+let comparisonChart = null;
+
+function setDefaultDates() {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 7);
+    document.getElementById('startDate').value = startDate.toISOString().slice(0, 10);
+    document.getElementById('endDate').value = endDate.toISOString().slice(0, 10);
+}
+
+async function loadStatistikPeriode(periode) {
+    let url = '';
+    
+    if (periode === 'hari') {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        if (!startDate || !endDate) {
+            alert('Pilih tanggal awal dan akhir');
+            return;
+        }
+        url = `${API_URL}/stats/periode?startDate=${startDate}&endDate=${endDate}`;
+    } 
+    else if (periode === 'bulan') {
+        const now = new Date();
+        url = `${API_URL}/stats/bulan?bulan=${now.getMonth()+1}&tahun=${now.getFullYear()}`;
+    }
+    else if (periode === 'tahun') {
+        const now = new Date();
+        url = `${API_URL}/stats/tahun?tahun=${now.getFullYear()}`;
+    }
+    
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (periode === 'hari') {
+            updateChartHarian(result.data);
+            updateTableHarian(result.data);
+            updateRingkasan(result.data);
+        }
+        else if (periode === 'bulan') {
+            updateChartBulanan(result.data);
+            updateTableBulanan(result.data);
+            updateRingkasan(result.ringkasan);
+        }
+        else if (periode === 'tahun') {
+            updateChartTahunan(result.data);
+            updateTableTahunan(result.data);
+            updateRingkasan(result.ringkasan);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Gagal memuat data statistik');
+    }
+}
+
+function updateChartHarian(data) {
+    const labels = data.map(d => d.tanggal);
+    const plnData = data.map(d => d.energi_pln || 0);
+    const pltsData = data.map(d => d.energi_plts || 0);
+    
+    if (comparisonChart) comparisonChart.destroy();
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'PLN (kWh)', data: plnData, backgroundColor: '#3b82f6' },
+                { label: 'PLTS (kWh)', data: pltsData, backgroundColor: '#10b981' }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: 'white' } } }, scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white', rotation: 45 } } } }
+    });
+}
+
+function updateChartBulanan(data) {
+    const labels = data.map(d => d.tanggal);
+    const plnData = data.map(d => d.energi_pln || 0);
+    const pltsData = data.map(d => d.energi_plts || 0);
+    
+    if (comparisonChart) comparisonChart.destroy();
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    comparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'PLN (kWh)', data: plnData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                { label: 'PLTS (kWh)', data: pltsData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: 'white' } } }, scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white', rotation: 45 } } } }
+    });
+}
+
+function updateChartTahunan(data) {
+    const labels = data.map(d => d.bulan);
+    const plnData = data.map(d => d.energi_pln || 0);
+    const pltsData = data.map(d => d.energi_plts || 0);
+    
+    if (comparisonChart) comparisonChart.destroy();
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'PLN (kWh)', data: plnData, backgroundColor: '#3b82f6' },
+                { label: 'PLTS (kWh)', data: pltsData, backgroundColor: '#10b981' }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: 'white' } } }, scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } } }
+    });
+}
+
+function updateTableHarian(data) {
+    const tbody = document.getElementById('detailTableBody');
+    tbody.innerHTML = '';
+    data.forEach(row => {
+        const total = (row.energi_pln || 0) + (row.energi_plts || 0);
+        const persen = total > 0 ? ((row.energi_plts || 0) / total * 100).toFixed(1) : 0;
+        tbody.innerHTML += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 10px;">${row.tanggal}</td>
+            <td style="padding: 10px;">${(row.energi_pln || 0).toFixed(2)}</td>
+            <td style="padding: 10px;">${(row.energi_plts || 0).toFixed(2)}</td>
+            <td style="padding: 10px;">${total.toFixed(2)}</td>
+            <td style="padding: 10px; color: #10b981;">${persen}%</td>
+        </tr>`;
+    });
+}
+
+function updateTableBulanan(data) {
+    const tbody = document.getElementById('detailTableBody');
+    tbody.innerHTML = '';
+    data.forEach(row => {
+        const total = (row.energi_pln || 0) + (row.energi_plts || 0);
+        const persen = total > 0 ? ((row.energi_plts || 0) / total * 100).toFixed(1) : 0;
+        tbody.innerHTML += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 10px;">${row.tanggal}</td>
+            <td style="padding: 10px;">${(row.energi_pln || 0).toFixed(2)}</td>
+            <td style="padding: 10px;">${(row.energi_plts || 0).toFixed(2)}</td>
+            <td style="padding: 10px;">${total.toFixed(2)}</td>
+            <td style="padding: 10px;">${persen}%</td>
+        </tr>`;
+    });
+}
+
+function updateTableTahunan(data) {
+    const tbody = document.getElementById('detailTableBody');
+    tbody.innerHTML = '';
+    data.forEach(row => {
+        const total = (row.energi_pln || 0) + (row.energi_plts || 0);
+        const persen = total > 0 ? ((row.energi_plts || 0) / total * 100).toFixed(1) : 0;
+        tbody.innerHTML += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 10px;">${row.bulan}</td>
+            <td style="padding: 10px;">${(row.energi_pln || 0).toFixed(2)}</td>
+            <td style="padding: 10px;">${(row.energi_plts || 0).toFixed(2)}</td>
+            <td style="padding: 10px;">${total.toFixed(2)}</td>
+            <td style="padding: 10px;">${persen}%</td>
+        </tr>`;
+    });
+}
+
+function updateRingkasan(data) {
+    let totalPLN = 0, totalPLTS = 0;
+    if (Array.isArray(data)) {
+        data.forEach(row => {
+            totalPLN += row.energi_pln || 0;
+            totalPLTS += row.energi_plts || 0;
+        });
+    } else {
+        totalPLN = data.total_pln || 0;
+        totalPLTS = data.total_plts || 0;
+    }
+    const total = totalPLN + totalPLTS;
+    const persen = total > 0 ? (totalPLTS / total * 100).toFixed(1) : 0;
+    
+    document.getElementById('statTotalPLN').innerHTML = totalPLN.toFixed(2) + ' kWh';
+    document.getElementById('statTotalPLTS').innerHTML = totalPLTS.toFixed(2) + ' kWh';
+    document.getElementById('statTotalEnergi').innerHTML = total.toFixed(2) + ' kWh';
+    document.getElementById('statEfisiensi').innerHTML = persen + ' %';
+}
+
+// Inisialisasi default
+setDefaultDates();
+loadStatistikPeriode('hari');
+</script>
+<!-- ===================================================== -->
+<!-- PANEL MONITORING DAYA TERPAKAI (Modal/Popup)         -->
+<!-- ===================================================== -->
+<div id="monitoringPanel" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #0f0c29, #302b63); border-radius: 30px; padding: 30px; width: 90%; max-width: 500px; border: 1px solid rgba(255,255,255,0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="color: #00d4ff;"><i class="fas fa-chart-pie"></i> MONITORING DAYA TERPAKAI</h2>
+            <button onclick="toggleMonitoringDetail()" style="background: #ef4444; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+        
+        <div style="background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span><i class="fas fa-industry" style="color: #3b82f6;"></i> DAYA DARI PLN</span>
+                <span style="font-size: 24px; font-weight: bold; color: #3b82f6;" id="modalDayaPLN">0 W</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span><i class="fas fa-solar-panel" style="color: #10b981;"></i> DAYA DARI PLTS</span>
+                <span style="font-size: 24px; font-weight: bold; color: #10b981;" id="modalDayaPLTS">0 W</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <span><i class="fas fa-bolt" style="color: #f59e0b;"></i> TOTAL DAYA BEBAN</span>
+                <span style="font-size: 20px; font-weight: bold; color: #f59e0b;" id="modalTotalDaya">0 W</span>
+            </div>
+        </div>
+        
+        <div style="background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center;">
+            <span style="font-size: 14px; color: #a0a0c0;">SUMBER AKTIF SAAT INI</span>
+            <div id="modalSumberAktif" style="font-size: 28px; font-weight: bold; margin-top: 5px;">--</div>
+        </div>
+        
+        <div style="background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px;">
+            <span style="font-size: 14px; color: #a0a0c0;">PERBANDINGAN KONTRIBUSI</span>
+            <div style="margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span>PLN</span>
+                    <span id="persenPLNModal">0%</span>
+                </div>
+                <div style="width: 100%; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden;">
+                    <div id="progressPLN" style="width: 0%; height: 25px; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 10px;"></div>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span>PLTS</span>
+                    <span id="persenPLTSModal">0%</span>
+                </div>
+                <div style="width: 100%; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden;">
+                    <div id="progressPLTS" style="width: 0%; height: 25px; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 10px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #a0a0c0;">
+            Data diperbarui setiap 3 detik
+        </div>
+    </div>
+</div>
+</body>
+</html>
