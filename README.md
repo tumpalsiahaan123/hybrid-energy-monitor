@@ -1,64 +1,31 @@
-\# Hybrid Energy Monitor
-
-
+# Hybrid Energy Monitor
 
 Sistem monitoring dan pengelolaan energi hybrid PLN–PLTS.
 
+## Deskripsi
 
+Proyek ini dikembangkan sebagai bagian dari tugas PA2. Repositori ini berisi kode sumber aplikasi, struktur database, dan gambar antarmuka sistem.
 
-\## Deskripsi
+## Struktur Proyek
 
+- `backend/` — kode backend aplikasi.
+- `backend/frontend/` — antarmuka aplikasi.
+- `database/` — skema database.
+- `gambar/` — gambar dokumentasi antarmuka sistem.
 
+## Teknologi
 
-Proyek ini dikembangkan sebagai bagian dari tugas PA2. Repositori ini berisi kode sumber aplikasi, struktur database, serta gambar antarmuka sistem.
+Lihat `backend/package.json` untuk mengetahui dependensi yang digunakan dalam proyek ini.
 
+## Persiapan
 
+1. Instal Node.js dan npm.
+2. Clone repositori ini.
+3. Masuk ke direktori `backend`.
+4. Jalankan `npm install`.
+5. Siapkan variabel lingkungan yang dibutuhkan aplikasi.
+6. Jalankan aplikasi sesuai skrip yang tersedia pada `backend/package.json`.
 
-\## Struktur Proyek
+## Keamanan
 
-
-
-\- `backend/` — kode backend aplikasi.
-
-\- `backend/frontend/` — antarmuka aplikasi.
-
-\- `database/` — berkas skema database.
-
-\- `gambar/` — dokumentasi visual antarmuka sistem.
-
-
-
-\## Teknologi
-
-
-
-Teknologi yang digunakan dapat dilihat pada `backend/package.json`.
-
-
-
-\## Persiapan
-
-
-
-1\. Instal Node.js dan npm.
-
-2\. Clone repositori ini.
-
-3\. Masuk ke folder `backend`.
-
-4\. Jalankan `npm install`.
-
-5\. Konfigurasikan variabel lingkungan berdasarkan kebutuhan aplikasi.
-
-6\. Jalankan aplikasi sesuai perintah yang tersedia di `backend/package.json`.
-
-
-
-\## Catatan Keamanan
-
-
-
-Jangan mengunggah file `.env`, kredensial, kata sandi, atau informasi sensitif lainnya ke repositori publik.
-
-
-
+Jangan mengunggah file `.env`, kata sandi, token, atau kredensial ke repositori publik.
